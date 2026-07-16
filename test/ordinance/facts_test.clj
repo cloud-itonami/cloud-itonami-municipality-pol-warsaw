@@ -1,0 +1,24 @@
+(ns ordinance.facts-test
+  (:require [clojure.string :as str]
+            [clojure.test :refer [deftest is]]
+            [ordinance.facts :as facts]))
+
+(deftest warsaw-has-spec-basis
+  (let [sb (facts/spec-basis "warsaw")]
+    (is (= 2 (count sb)))
+    (is (every? #(str/includes? (:ordinance/url %) "warszawa.pl") sb))))
+
+(deftest unknown-municipality-has-no-spec-basis
+  (is (nil? (facts/spec-basis "krakow")))
+  (is (nil? (facts/spec-basis "zzz"))))
+
+(deftest coverage-is-honest
+  (let [c (facts/coverage ["warsaw" "krakow"])]
+    (is (= 2 (:requested c)))
+    (is (= 1 (:covered c)))
+    (is (= ["krakow"] (:missing-municipalities c)))))
+
+(deftest by-topic-filters
+  (is (= 2 (count (facts/by-topic "warsaw" :governance))))
+  (is (empty? (facts/by-topic "warsaw" :labor)))
+  (is (empty? (facts/by-topic "krakow" :governance))))
